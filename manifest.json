@@ -1,0 +1,13 @@
+{
+  "name": "루틴 로그",
+  "short_name": "루틴로그",
+  "description": "아침 러닝 + 저녁 웨이트 로테이션 기록 및 성장 트래커",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14181A",
+  "theme_color": "#14181A",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

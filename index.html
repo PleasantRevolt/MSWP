@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>루틴 로그</title>
+<meta name="theme-color" content="#14181A" />
+<meta name="description" content="아침 러닝 + 저녁 웨이트 로테이션을 기록하고 성장을 추적하는 개인 루틴 트래커" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icon.svg" />
+<link rel="stylesheet" href="./style.css" />
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="frame">
+      <header class="header">
+        <div>
+          <div class="eyebrow">ROUTINE LOG</div>
+          <div class="big-date" id="big-date"></div>
+        </div>
+        <div class="streak-box">
+          <div class="streak-num" id="streak-num">0</div>
+          <div class="streak-label">일 연속</div>
+        </div>
+      </header>
+
+      <main id="app-content" class="content"></main>
+
+      <div id="toast" class="toast" hidden></div>
+
+      <nav class="nav">
+        <button class="nav-btn" data-action="set-tab" data-tab="today">☀️<span>오늘</span></button>
+        <button class="nav-btn" data-action="set-tab" data-tab="history">🔥<span>기록</span></button>
+        <button class="nav-btn" data-action="set-tab" data-tab="progress">📈<span>성장</span></button>
+        <button class="nav-btn" data-action="set-tab" data-tab="settings">⚙️<span>설정</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
