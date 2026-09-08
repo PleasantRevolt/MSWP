@@ -249,7 +249,8 @@ function handleInput(e) {
 /* ---------- 렌더링 ---------- */
 function render() {
   document.getElementById("big-date").innerHTML = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일`;
-  document.getElementById("streak-num").textContent = computeStreak();
+  document.getElementById("run-count").textContent = state.runLogs.length;
+  document.getElementById("weight-count").textContent = state.weightLogs.length;
   document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === state.tab));
 
   const content = document.getElementById("app-content");
@@ -261,15 +262,8 @@ function render() {
   if (state.tab === "progress") requestAnimationFrame(renderCharts);
 }
 
-function computeStreak() {
-  const days = new Set([...state.runLogs.map((r) => r.date), ...state.weightLogs.map((w) => w.date)]);
-  let count = 0;
-  let cursor = new Date();
-  for (;;) {
-    const key = cursor.toISOString().slice(0, 10);
-    if (days.has(key)) { count++; cursor.setDate(cursor.getDate() - 1); } else break;
-  }
-  return count;
+function computeTotalSessions() {
+  return state.runLogs.length + state.weightLogs.length;
 }
 
 function renderToday() {
