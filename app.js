@@ -72,6 +72,7 @@ const state = {
   rotation: [],
   runLogs: [],
   weightLogs: [],
+  activeDate: todayISO(),
   runForm: { distance: "", time: "", calories: "" },
   repsInputs: [],
   selectedExercise: "",
@@ -79,6 +80,22 @@ const state = {
 };
 let runChart = null;
 let exChart = null;
+
+function loadFormsForActiveDate() {
+  const iso = state.activeDate;
+  const existingRun = state.runLogs.find((x) => x.date === iso);
+  state.runForm = existingRun
+    ? { distance: String(existingRun.distance ?? ""), time: String(existingRun.time ?? ""), calories: String(existingRun.calories ?? "") }
+    : { distance: "", time: "", calories: "" };
+
+  const cur = computeCurrentExercise(state.rotation, state.weightLogs, iso);
+  const todayLog = state.weightLogs.find((x) => x.date === iso);
+  if (cur && todayLog && todayLog.entries[0] && todayLog.entries[0].name === cur.name) {
+    state.repsInputs = todayLog.entries[0].sets.map((s) => String(s.reps));
+  } else {
+    state.repsInputs = ["", "", "", ""];
+  }
+}
 
 /* ---------- 초기화 ---------- */
 function init() {
@@ -90,19 +107,9 @@ function init() {
   state.runLogs = loadKey("running-logs", []);
   state.weightLogs = loadKey("weight-logs", []);
   state.unit = loadKey("unit-pref", "kg");
+  state.activeDate = todayISO();
+  loadFormsForActiveDate();
 
-  const iso = todayISO();
-  const existingRun = state.runLogs.find((x) => x.date === iso);
-  if (existingRun) {
-    state.runForm = { distance: String(existingRun.distance ?? ""), time: String(existingRun.time ?? ""), calories: String(existingRun.calories ?? "") };
-  }
-  const cur = computeCurrentExercise(state.rotation, state.weightLogs, iso);
-  const todayLog = state.weightLogs.find((x) => x.date === iso);
-  if (cur && todayLog && todayLog.entries[0] && todayLog.entries[0].name === cur.name) {
-    state.repsInputs = todayLog.entries[0].sets.map((s) => String(s.reps));
-  } else {
-    state.repsInputs = ["", "", "", ""];
-  }
   const names = new Set();
   state.weightLogs.forEach((l) => l.entries.forEach((e) => names.add(e.name)));
   state.selectedExercise = Array.from(names)[0] || "";
@@ -126,7 +133,7 @@ function flash(msg) {
 
 /* ---------- 액션 ---------- */
 function saveRun() {
-  const iso = todayISO();
+  const iso = state.activeDate;
   const distance = parseFloat(state.runForm.distance);
   const time = parseFloat(state.runForm.time);
   const calories = parseFloat(state.runForm.calories);
@@ -139,11 +146,11 @@ function saveRun() {
   };
   state.runLogs = [...state.runLogs.filter((x) => x.date !== iso), entry].sort((a, b) => a.date.localeCompare(b.date));
   saveKey("running-logs", state.runLogs);
-  flash("오늘 러닝 기록 저장 완료");
+  flash(`${shortDate(iso)} 러닝 기록 저장 완료`);
 }
 
-function getCurrentExercise() { return computeCurrentExercise(state.rotation, state.weightLogs, todayISO()); }
-function getSuggestionFor(ex) { return ex ? computeSuggestion(state.weightLogs, todayISO(), ex.name, ex.targetReps, ex.increment) : null; }
+function getCurrentExercise() { return computeCurrentExercise(state.rotation, state.weightLogs, state.activeDate); }
+function getSuggestionFor(ex) { return ex ? computeSuggestion(state.weightLogs, state.activeDate, ex.name, ex.targetReps, ex.increment) : null; }
 function computeDerivedWeights(ex) {
   if (!ex) return [];
   const suggestion = getSuggestionFor(ex);
@@ -172,11 +179,22 @@ function saveWeightSession() {
     .map((r, i) => ({ reps: parseInt(r, 10), weight: weights[i] }))
     .filter((s) => Number.isFinite(s.reps));
   if (sets.length === 0) { flash("반복 횟수를 하나 이상 입력해줘"); return; }
-  const iso = todayISO();
+  const iso = state.activeDate;
   const entry = { id: uid(), date: iso, entries: [{ name: ex.name, group: ex.group, sets }] };
   state.weightLogs = [...state.weightLogs.filter((x) => x.date !== iso), entry].sort((a, b) => a.date.localeCompare(b.date));
   saveKey("weight-logs", state.weightLogs);
-  flash(`${ex.name} 세션 저장 완료`);
+  flash(`${shortDate(iso)} ${ex.name} 저장 완료`);
+}
+
+function deleteRunLog(id) {
+  state.runLogs = state.runLogs.filter((r) => r.id !== id);
+  saveKey("running-logs", state.runLogs);
+  loadFormsForActiveDate();
+}
+function deleteWeightLog(id) {
+  state.weightLogs = state.weightLogs.filter((w) => w.id !== id);
+  saveKey("weight-logs", state.weightLogs);
+  loadFormsForActiveDate();
 }
 
 function moveItem(id, dir) {
@@ -222,12 +240,20 @@ function handleClick(e) {
   else if (action === "move-item") { moveItem(btn.dataset.id, parseInt(btn.dataset.dir, 10)); render(); }
   else if (action === "remove-item") { removeItem(btn.dataset.id); render(); }
   else if (action === "add-item") { addItem(); render(); }
+  else if (action === "delete-run") { deleteRunLog(btn.dataset.id); render(); }
+  else if (action === "delete-weight") { deleteWeightLog(btn.dataset.id); render(); }
   else if (action === "select-exercise") { state.selectedExercise = btn.dataset.name; render(); }
 }
 function handleInput(e) {
   const el = e.target;
   const bind = el.dataset.bind;
   if (!bind) return;
+  if (bind === "activeDate") {
+    state.activeDate = el.value || todayISO();
+    loadFormsForActiveDate();
+    render();
+    return;
+  }
   if (bind === "reps") {
     const idx = parseInt(el.dataset.idx, 10);
     state.repsInputs[idx] = el.value;
@@ -300,6 +326,11 @@ function renderToday() {
   }
 
   return `
+    <div class="date-row">
+      <span class="date-row-label">기록할 날짜</span>
+      <input type="date" class="date-input" value="${state.activeDate}" data-bind="activeDate" />
+      ${state.activeDate !== todayISO() ? '<span class="date-badge">오늘 아님</span>' : ""}
+    </div>
     <div class="section">
       <div class="section-title" style="border-color:var(--am)">☀️<span>AM · 러닝</span></div>
       <div class="input-row">
@@ -325,6 +356,7 @@ function renderHistory() {
       <div class="history-row">
         <span class="history-date">${shortDate(r.date)}</span>
         <span class="history-detail">${fmt(r.distance)}km · ${fmt(r.time, 0)}분 · ${fmt(r.calories, 0)}kcal</span>
+        <button class="icon-btn" data-action="delete-run" data-id="${r.id}">✕</button>
       </div>`).join("");
 
   const weightRows = state.weightLogs.length === 0
@@ -337,7 +369,7 @@ function renderHistory() {
           const tag = success === null ? "" : success ? `<span class="tag-success">성공</span>` : `<span class="tag-fail">실패</span>`;
           return `<div class="history-detail">${esc(e.name)}: ${e.sets.map((s) => `${weightLabel(s.weight, state.unit)}×${s.reps}`).join(", ")}${tag}</div>`;
         }).join("");
-        return `<div class="history-block"><div class="history-date">${shortDate(w.date)} · ${esc(w.entries[0]?.group || "")}</div>${entries}</div>`;
+        return `<div class="history-block"><div class="history-row" style="border:none;padding-bottom:2px"><span class="history-date">${shortDate(w.date)} · ${esc(w.entries[0]?.group || "")}</span><button class="icon-btn" data-action="delete-weight" data-id="${w.id}">✕</button></div>${entries}</div>`;
       }).join("");
 
   return `
