@@ -23,7 +23,9 @@ button { font-family: inherit; }
 .eyebrow { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; }
 .big-date { font-family: 'Big Shoulders Display', sans-serif; font-weight: 700; font-size: 30px; line-height: 1; }
 .big-date span { color: var(--muted); }
-.streak-box { text-align: right; }
+.streak-box.multi { display: flex; gap: 16px; }
+.mini-stat { text-align: right; }
+.streak-num.small { font-size: 24px; }
 .streak-num { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 34px; color: var(--pr); line-height: 1; }
 .streak-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
