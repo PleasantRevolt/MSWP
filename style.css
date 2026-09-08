@@ -61,7 +61,11 @@ button { font-family: inherit; }
 .top-set-tag { font-size: 9px; color: var(--pr); border: 1px solid var(--pr); border-radius: 4px; padding: 1px 4px; }
 .add-set-btn { background: none; border: none; color: var(--muted); font-size: 11.5px; display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px 0 0; }
 
-.history-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
+.date-row { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+.date-row-label { font-size: 11px; color: var(--muted); }
+.date-input { background: var(--surface); border: 1px solid rgba(242,239,233,0.15); border-radius: 8px; padding: 6px 8px; color: var(--ink); font-size: 12.5px; }
+.date-badge { font-size: 10px; color: var(--am); border: 1px solid var(--am); border-radius: 10px; padding: 2px 7px; }
+.history-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; gap: 8px; }
 .history-block { padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
 .history-date { font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
 .history-detail { font-size: 13px; }
